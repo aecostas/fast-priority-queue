@@ -1,7 +1,6 @@
 const { performance, PerformanceObserver } = require('perf_hooks');
 const RANGE_OF_PRIORITIES = 50;
 const RANGE_OF_NUMBERS = 10000;
-const QUEUE_LENGTH = 100000;
 
 var pqueue = require('../../src/fastpriorityqueue');
 
@@ -9,7 +8,7 @@ getRandom = function(max) {
     return Math.floor(Math.random() * max + 1);
 }
 
-measurePerformance = function(functionToMeasure) {
+measurePerformance = function(length, functionToMeasure) {
     return new Promise((resolve, reject) => {
 
         const fn = performance.timerify(functionToMeasure);
@@ -20,24 +19,33 @@ measurePerformance = function(functionToMeasure) {
         });
         obs.observe({ entryTypes: ['function'] });
         fn();
-    }); 
+    });
+}
+
+let lengths = [100, 10000, 1000000];
+let promisesPull = [];
+let promisesInsert = [];
+
+for (let i=0; i<lengths.length; i++) {
+    let queue = new pqueue();
+
+    for (let length=0; length<lengths[i]; length++) {
+        queue.insert(
+            getRandom(RANGE_OF_PRIORITIES),
+            getRandom(RANGE_OF_NUMBERS)
+        );
+    }
+
+    promisesPull.push(measurePerformance(lengths[i], () => { queue.pull() }));
+    promisesInsert.push(measurePerformance(lengths[i], () => { queue.insert() }));
 
 }
 
-let queue100 = new pqueue();
-
-for (let i=0; i<QUEUE_LENGTH; i++) {
-    queue100.insert(
-        getRandom(RANGE_OF_PRIORITIES),
-        getRandom(RANGE_OF_NUMBERS)
-    );
-}
-
-measurePerformance(()=>{queue100.pull()})
-.then((pullTime) => {
-    console.log('pull: ', pullTime);
-    return measurePerformance(()=>{queue100.insert(200, 7)});
+Promise.all(promisesPull)
+.then((times) => {
+    console.log('pull: ', times);
+    return Promise.all(promisesInsert);
 })
-.then((insertTime) => {
-    console.log('insert: ', insertTime);
+.then((times) => {
+    console.log('insert: ', times);
 });
