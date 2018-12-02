@@ -22,7 +22,7 @@ measurePerformance = function(length, functionToMeasure) {
     });
 }
 
-let lengths = [100, 10000, 1000000];
+let lengths = [1e2, 1e4, 1e6];
 let promisesPull = [];
 let promisesInsert = [];
 

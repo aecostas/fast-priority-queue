@@ -1,23 +1,27 @@
 class FastPriorityQueue {
 
 	constructor() {
-		this.queue = [];
+		this.queues = {};
 	}
 
 	pull() {
-		if (this.queue.length === 0) {
+		let keys = Object.keys(this.queues);
+
+		if (keys.length === 0) {
 			return null;
 		}
 
-		let pullIndex = this.queue.reduce((maxPriorityIndex, cur, index) => {
-			return (this.queue[maxPriorityIndex].priority > cur.priority) ? index:maxPriorityIndex;
-		}, 0);
-
-		return this.queue.splice(pullIndex)[0].value;
+		let index = Math.min(...keys);
+	
+		return this.queues[index].shift();
 	}
 
 	insert(value, priority) {
-		this.queue.push({value: value, priority: priority});
+		if (!this.queues[priority]) {
+			this.queues[priority] = [];
+		} 
+		
+		this.queues[priority].push(value);
 	}
 
 }
